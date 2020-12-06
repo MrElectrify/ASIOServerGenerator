@@ -1,0 +1,11 @@
+#ifndef __PROJNAMEUPPER___COMMON_H_
+#define __PROJNAMEUPPER___COMMON_H_
+
+#ifdef ___PROJNAMEUPPER__DEBUG
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
+#else
+#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_INFO
+#endif
+#include <spdlog/spdlog.h>
+
+#endif

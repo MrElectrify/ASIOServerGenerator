@@ -14,9 +14,18 @@ if [  ! -d $gitURL ]; then
 	exit
 fi
 
-for f in base/*; do
+for f in $(find base -not \( -path "base/out" -prune \) -name '*.cpp' -or -name '*.h' -or -name 'CMakeLists.txt'); do
+	name=${f//__PROJNAME__/$projName}
+	name=${name:5}
+	echo $name
 	contents=$(<$f)
 	#substitute __PROJNAME__ for the project name
 	contents=${contents//__PROJNAME__/$projName}
+	#substitute __PROJNAMEUPPER__ for the uppercase project name
+	contents=${contents//__PROJNAMEUPPER__/${projName^^}}
+	#substitute __DATE__ for the date
+	contents=${contents//__DATE__/$(date "+%D")}
+	#substitute __TIME__ for the time
+	contents=${contents//__TIME__/$(date "+%H:%M")}
 	echo "$contents"
 done
