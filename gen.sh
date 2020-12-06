@@ -5,19 +5,19 @@ if [ "$#" -ne 2 ]; then
 	exit
 fi
 
-gitURL="$1"
+gitPath="$1"
 projName="$2"
 
-#read the git URL
-if [  ! -d $gitURL ]; then
+#read the git path
+if [  ! -d $gitPath ]; then
 	echo "Repo not found"
 	exit
 fi
 
-for f in $(find base -not \( -path "base/out" -prune \) -name '*.cpp' -or -name '*.h' -or -name 'CMakeLists.txt'); do
+gitPath=$(realpath "$gitPath")
+
+for f in $(find base -not \( -path "base/out" -prune \) -name '*.cpp' -or -name '*.h' -or -name 'CMakeLists.txt' -or -name '.gitignore' -or -name '.gitattributes'); do
 	name=${f//__PROJNAME__/$projName}
-	name=${name:5}
-	echo $name
 	contents=$(<$f)
 	#substitute __PROJNAME__ for the project name
 	contents=${contents//__PROJNAME__/$projName}
@@ -27,5 +27,12 @@ for f in $(find base -not \( -path "base/out" -prune \) -name '*.cpp' -or -name 
 	contents=${contents//__DATE__/$(date "+%D")}
 	#substitute __TIME__ for the time
 	contents=${contents//__TIME__/$(date "+%H:%M")}
-	echo "$contents"
+	#copy the file to the output directory
+	name=${name:5}
+	if [[ $name = *"/"* ]]; then
+		#make the directory
+		mkdir -p "$gitPath/${name%/*}"
+	fi
+	#echo "mkdir -p \"$gitPath/${name%/*}\" && echo \"\$contents\" > \"$gitPath/$name\""
+	echo "$contents" > "$gitPath/$name"
 done
