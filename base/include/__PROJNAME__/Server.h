@@ -5,6 +5,9 @@
 /// Server
 /// __DATE__ __TIME__
 
+// __PROJNAME__ includes
+#include <__PROJNAME__/Detail/ConnectionManager.h>
+
 // asio includes
 #include <asio.hpp>
 
@@ -42,6 +45,7 @@ namespace __PROJNAME__
 
 		asio::io_context m_worker;
 		Proto_t::acceptor m_acceptor;
+		Detail::ConnectionManager m_connectionManager;
 		asio::signal_set m_signals;
 	};
 }

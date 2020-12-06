@@ -73,6 +73,10 @@ void Server::Accept() noexcept
 				SPDLOG_INFO("Accepted connection from {}:{}",
 					socket.remote_endpoint().address().to_string(),
 					socket.remote_endpoint().port());
+				// start the connection processing
+				m_connectionManager.Start(
+					std::make_shared<Detail::Connection>(
+						m_connectionManager, std::move(socket)));
 			}
 			else
 				SPDLOG_ERROR("Error accepting connection: {}",
