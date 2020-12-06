@@ -33,7 +33,7 @@ void Server::Run()
 void Server::AwaitSignals() noexcept
 {
 	m_signals.async_wait(
-		[this](const std::error_code& ec, int signo)
+		[this] (const std::error_code& ec, int signo)
 		{
 			if (ec)
 				return;
@@ -63,7 +63,7 @@ void Server::StartAcceptor(const Proto_t::endpoint& endpoint)
 void Server::Accept() noexcept
 {
 	m_acceptor.async_accept(
-		[this](const std::error_code& ec, Proto_t::socket socket)
+		[this] (const std::error_code& ec, Proto_t::socket socket)
 		{
 			// check if it was closed
 			if (m_acceptor.is_open() == false)

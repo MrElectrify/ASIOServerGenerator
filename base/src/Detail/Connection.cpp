@@ -35,14 +35,15 @@ void Connection::StopImpl() noexcept
 void Connection::Read() noexcept
 {
 	m_socket.async_read_some(asio::buffer(m_incomingBuf),
-		[this, self = shared_from_this()]
-		(const std::error_code& ec, size_t numRecv)
+		[this, self = shared_from_this()] (const std::error_code& ec, size_t numRecv)
 		{
 			if (!ec)
 			{
 				SPDLOG_DEBUG("Received {} bytes from {}:{}",
 					numRecv, m_remoteEndpoint.address().to_string(),
 					m_remoteEndpoint.port());
+				// send them back
+				SendPacket(m_incomingBuf.begin(), m_incomingBuf.begin() + numRecv);
 				Read();
 			}
 			else if (ec == asio::error::eof)
@@ -54,10 +55,35 @@ void Connection::Read() noexcept
 			}
 			else if (ec != asio::error::operation_aborted)
 			{
-				SPDLOG_ERROR("Connection at {}:{} disconnection on read: {}",
+				SPDLOG_ERROR("Connection at {}:{} disconnected on read: {}",
 					m_remoteEndpoint.address().to_string(),
 					m_remoteEndpoint.port(), ec.message());
 				Stop();
+			}
+		});
+}
+
+void Connection::Write() noexcept
+{
+	asio::async_write(m_socket, asio::buffer(m_outgoingQueue.front()),
+		[this, self = shared_from_this()] (const std::error_code& ec, size_t numSent)
+		{
+			if (!ec)
+			{
+				SPDLOG_DEBUG("Sent {} bytes to {}:{}", numSent,
+					m_remoteEndpoint.address().to_string(),
+					m_remoteEndpoint.port());
+				// pop off the front
+				m_outgoingQueue.pop();
+				// if there remain packets to be sent, send them
+				if (m_outgoingQueue.empty() == false)
+					Write();
+			}
+			else if (ec != asio::error::operation_aborted)
+			{
+				SPDLOG_ERROR("Connection at {}:{} disconnected on write: {}",
+					m_remoteEndpoint.address().to_string(),
+					m_remoteEndpoint.port(), ec.message());
 			}
 		});
 }
