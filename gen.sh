@@ -9,7 +9,7 @@ gitPath="$1"
 projName="$2"
 
 #read the git path
-if [  ! -d $gitPath ]; then
+if [  ! -d $gitPath ] || [ ! -d "$gitPath/.git" ]; then
 	echo "Repo not found"
 	exit
 fi
@@ -33,6 +33,22 @@ for f in $(find base -not \( -path "base/out" -prune \) -name '*.cpp' -or -name 
 		#make the directory
 		mkdir -p "$gitPath/${name%/*}"
 	fi
-	#echo "mkdir -p \"$gitPath/${name%/*}\" && echo \"\$contents\" > \"$gitPath/$name\""
 	echo "$contents" > "$gitPath/$name"
 done
+
+#enter the directory
+pushd $gitPath > /dev/null
+branch=$(git branch)
+if [ -z "$branch" ]; then
+	#init the branch
+	git add --all
+	#add submodules
+	cd extern
+	git submodule add https://github.com/chriskohlhoff/asio.git
+	git submodule add https://github.com/gabime/spdlog.git
+	cd ..
+	git commit -m "Initial commit"
+	git branch -M master
+	git push
+fi
+popd > /dev/null
